@@ -1,0 +1,45 @@
+﻿@model Buoi5.Models.Students
+
+@{
+    ViewData["Title"] = "Edit Student";
+}
+
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Edit Student</h1>
+
+    <div class="card shadow">
+        <div class="card-body">
+            <form asp-action="Edit">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <input type="hidden" asp-for="studentId" />
+                <div class="form-group mb-3">
+                    <label asp-for="FirstName" class="control-label"></label>
+                    <input asp-for="FirstName" class="form-control" />
+                    <span asp-validation-for="FirstName" class="text-danger"></span>
+                </div>
+                <div class="form-group mb-3">
+                    <label asp-for="LastName" class="control-label"></label>
+                    <input asp-for="LastName" class="form-control" />
+                    <span asp-validation-for="LastName" class="text-danger"></span>
+                </div>
+                <div class="form-group mb-3">
+                    <label asp-for="gradeId" class="control-label"></label>
+                    <select asp-for="gradeId" class="form-control" asp-items="@(new SelectList(ViewBag.Grades, "gradeId", "gradeName"))">
+                        <option value="">-- Select Grade --</option>
+                    </select>
+                    <span asp-validation-for="gradeId" class="text-danger"></span>
+                </div>
+                <div class="form-group d-flex justify-content-end">
+                    <a asp-action="Index" class="btn btn-secondary me-2">Back to List</a>
+                    <input type="submit" value="Save" class="btn btn-primary" />
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
