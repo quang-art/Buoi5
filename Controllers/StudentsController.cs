@@ -18,6 +18,7 @@ namespace Buoi5.Controllers
         public IActionResult Index()
         {
             var students = _context.Students.Include(s => s.Grade).ToList();
+            ViewBag.Grades = _context.Grades.OrderBy(g => g.gradeName).ToList();
             return View(students);
         }
 
@@ -36,7 +37,7 @@ namespace Buoi5.Controllers
         public IActionResult Create()
         {
             ViewBag.Grades = _context.Grades.ToList();
-            if (ViewBag.Grades == null )
+            if (ViewBag.Grades == null || !((List<Grades>)ViewBag.Grades).Any())
             {
                 ModelState.AddModelError("", "No grades available. Please add a grade first.");
             }
@@ -46,23 +47,40 @@ namespace Buoi5.Controllers
         // POST: Students/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Create(Students student, IFormCollection form)
+        public IActionResult Create(Students student)
         {
-            Console.WriteLine($"Form data - gradeId: {form["gradeId"]}");
-            Console.WriteLine($"Model data - studentId: {student.studentId}, FirstName: {student.FirstName}, LastName: {student.LastName}, gradeId: {student.gradeId}");
+            // Remove validation errors for Grade navigation property if any
+            ModelState.Remove("Grade");
 
-            // Kiểm tra giá trị gradeId trước khi validation
+            // Check if gradeId is valid
             if (student.gradeId <= 0)
             {
                 ModelState.AddModelError("gradeId", "Please select a valid grade.");
             }
+            else
+            {
+                // Check if the selected grade exists
+                var gradeExists = _context.Grades.Any(g => g.gradeId == student.gradeId);
+                if (!gradeExists)
+                {
+                    ModelState.AddModelError("gradeId", "Selected grade does not exist.");
+                }
+            }
 
             if (ModelState.IsValid)
             {
-                _context.Add(student);
-                _context.SaveChanges();
-                TempData["SuccessMessage"] = "Student created successfully!";
-                return RedirectToAction(nameof(Index));
+                try
+                {
+                    _context.Add(student);
+                    _context.SaveChanges();
+                    TempData["SuccessMessage"] = "Student created successfully!";
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", "An error occurred while saving the student.");
+                    Console.WriteLine(ex.Message);
+                }
             }
 
             // Debug ModelState errors
@@ -78,6 +96,7 @@ namespace Buoi5.Controllers
             ViewBag.Grades = _context.Grades.ToList();
             return View(student);
         }
+
         // GET: Students/Edit/5
         public IActionResult Edit(int id)
         {
@@ -100,6 +119,24 @@ namespace Buoi5.Controllers
                 return NotFound();
             }
 
+            // Remove validation errors for Grade navigation property if any
+            ModelState.Remove("Grade");
+
+            // Check if gradeId is valid
+            if (student.gradeId <= 0)
+            {
+                ModelState.AddModelError("gradeId", "Please select a valid grade.");
+            }
+            else
+            {
+                // Check if the selected grade exists
+                var gradeExists = _context.Grades.Any(g => g.gradeId == student.gradeId);
+                if (!gradeExists)
+                {
+                    ModelState.AddModelError("gradeId", "Selected grade does not exist.");
+                }
+            }
+
             if (ModelState.IsValid)
             {
                 try
@@ -107,21 +144,20 @@ namespace Buoi5.Controllers
                     _context.Update(student);
                     _context.SaveChanges();
                     TempData["SuccessMessage"] = "Student updated successfully!";
+                    return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateException ex)
                 {
-                    // In lỗi nếu có vấn đề khi lưu vào database
                     Console.WriteLine(ex.Message);
                     ModelState.AddModelError("", "Unable to save changes. Try again, and if the problem persists, see your system administrator.");
                 }
-                return RedirectToAction(nameof(Index));
             }
 
-            // Nếu ModelState không hợp lệ, hiển thị lỗi để debug
+            // Debug ModelState errors
             var errors = ModelState.Values.SelectMany(v => v.Errors);
             foreach (var error in errors)
             {
-                Console.WriteLine(error.ErrorMessage); // In lỗi ra console để debug
+                Console.WriteLine(error.ErrorMessage);
             }
 
             ViewBag.Grades = _context.Grades.ToList();
@@ -149,6 +185,7 @@ namespace Buoi5.Controllers
             {
                 _context.Students.Remove(student);
                 _context.SaveChanges();
+                TempData["SuccessMessage"] = "Student deleted successfully!";
             }
             return RedirectToAction(nameof(Index));
         }

@@ -2,74 +2,284 @@
 
 @{
     ViewData["Title"] = "Students";
+    var grades = ViewBag.Grades as List<Buoi5.Models.Grades>;
 }
 
-<div class="container mt-5">
-    <h1 class="text-center mb-4">Students</h1>
+<div class="container-fluid mt-5">
+    <h1 class="text-center mb-4">Students Management</h1>
 
-    <div class="d-flex justify-content-end mb-3">
-        <a asp-action="Create" class="btn btn-success">
-            <i class="bi bi-plus-circle"></i> Create New
-        </a>
-    </div>
+    <div class="row">
+        <!-- Sidebar Filter -->
+        <div class="col-lg-3 col-md-4">
+            <div class="card shadow-sm border-0" style="border-radius: 15px; position: sticky; top: 20px;">
+                <div class="card-header bg-dark text-white" style="border-radius: 15px 15px 0 0;">
+                    <h5 class="mb-0">
+                        <i class="bi bi-funnel"></i> Filter by Grade
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        <button class="list-group-item list-group-item-action filter-btn active"
+                                data-grade="all" style="border: none;">
+                            <i class="bi bi-grid-3x3-gap"></i> All Students
+                            <span class="badge bg-primary rounded-pill float-end">@Model.Count()</span>
+                        </button>
+                        @if (grades != null)
+                        {
+                            @foreach (var grade in grades)
+                            {
+                                var studentCount = Model.Count(s => s.gradeId == grade.gradeId);
+                                <button class="list-group-item list-group-item-action filter-btn"
+                                        data-grade="@grade.gradeId" style="border: none;">
+                                    <i class="bi bi-bookmark-fill"></i> @grade.gradeName
+                                    <span class="badge bg-info rounded-pill float-end">@studentCount</span>
+                                </button>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
 
-    <div class="card shadow">
-        <div class="card-body">
-            <table class="table table-hover table-bordered">
-                <thead class="table-dark">
-                    <tr>
-                        <th>#</th>
-                        <th>
-                            @Html.DisplayNameFor(model => model.FirstName)
-                        </th>
-                        <th>
-                            @Html.DisplayNameFor(model => model.LastName)
-                        </th>
-                        <th>
-                            Grade
-                        </th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @{
-                        int index = 1;
-                    }
-                    @foreach (var item in Model)
-                    {
-                        <tr>
-                            <td>@index</td>
-                            <td>
-                                @Html.DisplayFor(modelItem => item.FirstName)
-                            </td>
-                            <td>
-                                @Html.DisplayFor(modelItem => item.LastName)
-                            </td>
-                            <td>
-                                @Html.DisplayFor(modelItem => item.Grade.gradeName)
-                            </td>
-                            <td>
-                                <a asp-action="Edit" asp-route-id="@item.studentId" class="btn btn-sm btn-primary">
-                                    <i class="bi bi-pencil-square"></i> Edit
-                                </a>
-                                <a asp-action="Details" asp-route-id="@item.studentId" class="btn btn-sm btn-info">
-                                    <i class="bi bi-eye"></i> Details
-                                </a>
-                                <a asp-action="Delete" asp-route-id="@item.studentId" class="btn btn-sm btn-danger">
-                                    <i class="bi bi-trash"></i> Delete
-                                </a>
-                            </td>
-                        </tr>
-                        index++;
-                    }
-                </tbody>
-            </table>
+            <!-- Add New Student Button -->
+            <div class="mt-3">
+                <a asp-action="Create" class="btn btn-success btn-lg w-100">
+                    <i class="bi bi-plus-circle"></i> Create New Student
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-lg-9 col-md-8">
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    @TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            <!-- Current Filter Display -->
+            <div class="mb-3">
+                <h4 id="current-filter" class="text-muted">
+                    <i class="bi bi-eye"></i> Showing: All Students (@Model.Count())
+                </h4>
+            </div>
+
+            <!-- Students Cards Container -->
+            <div id="students-container" class="row">
+                @foreach (var student in Model)
+                {
+                    <div class="col-lg-6 col-xl-4 col-md-12 mb-4 student-card" data-grade="@student.gradeId">
+                        <div class="card h-100 shadow-sm border-0" style="border-radius: 15px; transition: all 0.3s ease; min-height: 300px;">
+                            <div class="card-header bg-gradient text-white position-relative"
+                                 style="border-radius: 15px 15px 0 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                <h6 class="card-title mb-0">
+                                    <i class="bi bi-person-circle"></i> Student #@student.studentId
+                                </h6>
+                                <div class="position-absolute top-0 end-0 m-2">
+                                    <span class="badge bg-light text-dark">@student.Grade?.gradeName</span>
+                                </div>
+                            </div>
+                            <div class="card-body d-flex flex-column">
+                                <div class="mb-3 text-center">
+                                    <div class="student-avatar mx-auto mb-2"
+                                         style="width: 80px; height: 80px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                                border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                        <i class="bi bi-person-fill text-white" style="font-size: 2rem;"></i>
+                                    </div>
+                                    <h5 class="text-dark mb-1">@student.FirstName @student.LastName</h5>
+                                    <small class="text-muted">Grade: @student.Grade?.gradeName</small>
+                                </div>
+
+                                <div class="mt-auto">
+                                    <div class="btn-group w-100" role="group">
+                                        <a asp-action="Edit" asp-route-id="@student.studentId"
+                                           class="btn btn-outline-primary btn">
+                                            <i class="bi bi-pencil-square"></i> Edit
+                                        </a>
+                                        <a asp-action="Details" asp-route-id="@student.studentId"
+                                           class="btn btn-outline-info btn">
+                                            <i class="bi bi-eye"></i> Details
+                                        </a>
+                                        <a asp-action="Delete" asp-route-id="@student.studentId"
+                                           class="btn btn-outline-danger btn">
+                                            <i class="bi bi-trash"></i> Delete
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Empty State -->
+            <div id="empty-state" class="text-center py-5" style="display: none;">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <i class="bi bi-person-x display-1 text-muted mb-3"></i>
+                        <h3 class="text-muted" id="empty-title">No Students Found</h3>
+                        <p class="text-muted" id="empty-message">No students found for the selected grade.</p>
+                        <a asp-action="Create" class="btn btn-success btn-lg">
+                            <i class="bi bi-plus-circle"></i> Add Student
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
 @section Scripts {
     <script>
-        // Có thể thêm script nếu cần (ví dụ: tìm kiếm, lọc dữ liệu)
+        document.addEventListener('DOMContentLoaded', function () {
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            const studentCards = document.querySelectorAll('.student-card');
+            const studentsContainer = document.getElementById('students-container');
+            const emptyState = document.getElementById('empty-state');
+            const currentFilter = document.getElementById('current-filter');
+            const emptyTitle = document.getElementById('empty-title');
+            const emptyMessage = document.getElementById('empty-message');
+
+            // Add hover effect to cards
+            const cards = document.querySelectorAll('.card');
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', function () {
+                    if (!this.closest('.student-card')) return;
+                    this.style.transform = 'translateY(-8px)';
+                    this.style.boxShadow = '0 12px 30px rgba(0,0,0,0.2)';
+                });
+                card.addEventListener('mouseleave', function () {
+                    if (!this.closest('.student-card')) return;
+                    this.style.transform = 'translateY(0)';
+                    this.style.boxShadow = '';
+                });
+            });
+
+            // Filter functionality
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function () {
+                    // Remove active class from all buttons
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    // Add active class to clicked button
+                    this.classList.add('active');
+
+                    const selectedGrade = this.getAttribute('data-grade');
+                    let visibleCount = 0;
+                    let gradeName = this.textContent.trim().split('\n')[0].replace(/^\s*[\w-]*\s*/, '').trim();
+
+                    studentCards.forEach(card => {
+                        const cardGrade = card.getAttribute('data-grade');
+
+                        if (selectedGrade === 'all' || cardGrade === selectedGrade) {
+                            card.style.display = 'block';
+                            // Add animation
+                            card.style.opacity = '0';
+                            card.style.transform = 'translateY(20px)';
+                            setTimeout(() => {
+                                card.style.transition = 'all 0.3s ease';
+                                card.style.opacity = '1';
+                                card.style.transform = 'translateY(0)';
+                            }, 50);
+                            visibleCount++;
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    });
+
+                    // Update current filter display
+                    if (selectedGrade === 'all') {
+                        currentFilter.innerHTML = `<i class="bi bi-eye"></i> Showing: All Students (${visibleCount})`;
+                    } else {
+                        currentFilter.innerHTML = `<i class="bi bi-eye"></i> Showing: ${gradeName} (${visibleCount})`;
+                    }
+
+                    // Show/hide empty state
+                    if (visibleCount === 0) {
+                        studentsContainer.style.display = 'none';
+                        emptyState.style.display = 'block';
+
+                        if (selectedGrade === 'all') {
+                            emptyTitle.textContent = 'No Students Found';
+                            emptyMessage.textContent = 'There are no students in the system yet.';
+                        } else {
+                            emptyTitle.textContent = `No Students in ${gradeName}`;
+                            emptyMessage.textContent = `No students found for ${gradeName}.`;
+                        }
+                    } else {
+                        studentsContainer.style.display = 'flex';
+                        emptyState.style.display = 'none';
+                    }
+                });
+            });
+
+            // Initialize with smooth animation
+            setTimeout(() => {
+                studentCards.forEach((card, index) => {
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateY(20px)';
+                    setTimeout(() => {
+                        card.style.transition = 'all 0.3s ease';
+                        card.style.opacity = '1';
+                        card.style.transform = 'translateY(0)';
+                    }, index * 100);
+                });
+            }, 100);
+        });
     </script>
+
+    <style>
+        .filter-btn {
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+            .filter-btn:hover {
+                background-color: #f8f9fa !important;
+                transform: translateX(5px);
+            }
+
+            .filter-btn.active {
+                background-color: #007bff !important;
+                color: white !important;
+                transform: translateX(5px);
+            }
+
+                .filter-btn.active .badge {
+                    background-color: white !important;
+                    color: #007bff !important;
+                }
+
+        .student-card {
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.2) !important;
+        }
+
+        .student-avatar {
+            transition: all 0.3s ease;
+        }
+
+        .card:hover .student-avatar {
+            transform: scale(1.1);
+        }
+
+        /* Tùy chỉnh nút bấm */
+        .btn-group .btn {
+            padding: 10px 15px; /* Tăng padding để nút lớn hơn */
+            font-size: 1rem; /* Tăng kích thước chữ */
+            margin-right: 5px; /* Thêm khoảng cách giữa các nút */
+        }
+
+            .btn-group .btn:last-child {
+                margin-right: 0; /* Bỏ khoảng cách ở nút cuối cùng */
+            }
+
+            .btn-group .btn i {
+                margin-right: 5px; /* Khoảng cách giữa icon và văn bản */
+            }
+    </style>
 }

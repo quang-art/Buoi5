@@ -15,10 +15,10 @@ namespace Buoi5.Models
         [StringLength(50, ErrorMessage = "Last Name cannot be longer than 50 characters")]
         public string LastName { get; set; }
 
-        [Required(ErrorMessage = "The Grade field is required")]
+        [Required(ErrorMessage = "Please select a grade")]
         [Range(1, int.MaxValue, ErrorMessage = "Please select a valid grade")]
         public int gradeId { get; set; }
 
-        public Grades Grade { get; set; }
+        public Grades? Grade { get; set; } // Make nullable to avoid potential issues
     }
 }
